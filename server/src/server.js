@@ -11,6 +11,7 @@ import inquiryRoutes from './routes/inquiries.js';
 import settingRoutes from './routes/settings.js';
 import uploadRoutes from './routes/upload.js';
 import authRoutes from './routes/auth.js';
+import { checkDatabase, initDatabase } from './database/store.js';
 
 dotenv.config();
 
@@ -43,11 +44,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health Check API
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const database = await checkDatabase();
   res.json({
     status: 'online',
     timestamp: new Date().toISOString(),
-    service: 'CCTV Showroom API'
+    service: 'CCTV Showroom API',
+    database
   });
 });
 
@@ -83,7 +86,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 CCTV Showroom Server is running on http://localhost:${PORT}`);
-  console.log(`🔌 Ready for API requests & Supabase / Cloudinary / Firebase integration`);
-});
+const startServer = async () => {
+  await initDatabase();
+
+  app.listen(PORT, () => {
+    console.log(`🚀 CCTV Showroom Server is running on http://localhost:${PORT}`);
+    console.log(`🔌 Ready for API requests & PostgreSQL / Cloudinary / Firebase integration`);
+  });
+};
+
+startServer();

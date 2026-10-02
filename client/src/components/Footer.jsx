@@ -11,9 +11,17 @@ import {
   Award, 
   Wrench, 
   CheckCircle2, 
-  Lock 
+  Lock,
+  Instagram,
+  Facebook
 } from 'lucide-react';
 import { useInquiry } from '../context/InquiryContext.jsx';
+
+// Social pages opened in a new tab from the footer
+const SOCIAL_LINKS = [
+  { name: 'Instagram', href: 'https://www.instagram.com/', Icon: Instagram },
+  { name: 'Facebook', href: 'https://www.facebook.com/', Icon: Facebook }
+];
 
 export default function Footer() {
   const { settings, getWhatsAppLink } = useInquiry();
@@ -99,6 +107,25 @@ export default function Footer() {
               <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">CP Plus</span>
               <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">Imou</span>
               <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800">Western Digital</span>
+            </div>
+          </div>
+
+          <div className="pt-3">
+            <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Follow Us:</p>
+            <div className="flex items-center gap-3">
+              {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`${settings.showroom_name || 'SM SYSTEMS'} on ${name}`}
+                  aria-label={`${settings.showroom_name || 'SM SYSTEMS'} on ${name}`}
+                  className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white hover:bg-brand-600 hover:border-brand-500 transition-colors"
+                >
+                  <Icon className="w-4 h-4" />
+                </a>
+              ))}
             </div>
           </div>
         </div>
@@ -206,7 +233,20 @@ export default function Footer() {
       <div className="border-t border-slate-900 bg-slate-950 py-4 px-4 sm:px-6 lg:px-8 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
           <p>© {new Date().getFullYear()} {settings.showroom_name}. All Rights Reserved.</p>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
+            {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+              <a
+                key={name}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={name}
+                aria-label={name}
+                className="hover:text-brand-400 transition-colors"
+              >
+                <Icon className="w-4 h-4" />
+              </a>
+            ))}
             <Link to="/products" className="hover:text-slate-300">Catalog</Link>
             <Link to="/services" className="hover:text-slate-300">Installation Packages</Link>
             <Link to="/contact" className="hover:text-slate-300">Showroom Map</Link>

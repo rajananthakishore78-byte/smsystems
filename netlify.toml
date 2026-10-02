@@ -1,0 +1,26 @@
+[build]
+  command = "npm install --prefix client && npm run build"
+  publish = "client/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+  # Required: point the built client at your Render API.
+  # Must include the /api suffix, e.g. https://smsystems-api.onrender.com/api
+  # (You can also set this in the Netlify UI: Site settings -> Environment variables)
+  VITE_API_URL = "https://smsystems.onrender.com/api"
+
+# Single-page-app fallback: every non-file route serves the React app
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# --- Alternative to VITE_API_URL (no CORS, no build-time coupling) ---
+# If you prefer same-origin API calls, uncomment the block below, place it
+# ABOVE the /* fallback, and delete the VITE_API_URL variable:
+#
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://YOUR-SERVICE-NAME.onrender.com/api/:splat"
+#   status = 200
+#   force = true

@@ -111,18 +111,18 @@ export default function AdminDashboard() {
           </div>
           <div>
             <h4 className="text-sm font-bold text-white">Full-Stack Cloud Infrastructure</h4>
-            <p className="text-xs text-slate-400">PostgreSQL (Supabase) • Media CDN (Cloudinary) • Security (Firebase)</p>
+            <p className="text-xs text-slate-400">PostgreSQL (Supabase) • Secure Auth (Supabase) • Media CDN (Cloudinary)</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
           <div className={`px-3 py-1 rounded-full border flex items-center gap-1.5 ${
-            cloudStatus?.supabase 
+            cloudStatus?.database === 'postgres'
               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
               : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
           }`}>
             <span className="w-2 h-2 rounded-full bg-current"></span>
-            <span>Supabase (Postgres): {cloudStatus?.supabase ? 'Live Connected' : 'Local Fallback'}</span>
+            <span>PostgreSQL (Supabase): {cloudStatus?.database === 'postgres' ? 'Live Connected' : 'In-Memory Fallback'}</span>
           </div>
 
           <div className={`px-3 py-1 rounded-full border flex items-center gap-1.5 ${
@@ -135,12 +135,12 @@ export default function AdminDashboard() {
           </div>
 
           <div className={`px-3 py-1 rounded-full border flex items-center gap-1.5 ${
-            cloudStatus?.firebase 
+            cloudStatus?.supabaseAuth 
               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
               : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
           }`}>
             <span className="w-2 h-2 rounded-full bg-current"></span>
-            <span>Firebase: {cloudStatus?.firebase ? 'Active' : 'Passcode Active'}</span>
+            <span>Supabase Auth: {cloudStatus?.supabaseAuth ? 'JWT Verified' : 'Passcode Fallback'}</span>
           </div>
         </div>
       </div>

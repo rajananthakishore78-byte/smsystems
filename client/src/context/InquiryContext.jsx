@@ -11,7 +11,7 @@ export const InquiryProvider = ({ children }) => {
     phone_primary: "+91 98401 23456",
     phone_secondary: "+91 94440 98765",
     whatsapp_number: "919840123456",
-    email: "sales@apexvisioncctv.com",
+    email: "sales@smsystems.in",
     address: "Showroom No. 18, Orange Square, Ring Road Junction, Anna Nagar, Chennai",
     city: "Chennai",
     state: "Tamil Nadu",

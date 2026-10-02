@@ -1,0 +1,47 @@
+# Render blueprint for the SM SYSTEMS API (Express + Supabase PostgreSQL).
+# The React client deploys separately on Netlify (see netlify.toml).
+#
+# Deploy: Render dashboard -> New -> Blueprint -> pick this repo.
+# Secrets below are marked `sync: false`, so Render prompts you for each value
+# during setup (copy them from server/.env). Never commit real values here.
+services:
+  - type: web
+    name: smsystems-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      # Supabase PostgreSQL - use the IPv4 POOLER host (aws-0-<region>.pooler.supabase.com),
+      # the direct db.* host is IPv6-only and fails on many hosts.
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
+      # Supabase Auth + REST
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_JWKS_URL
+        sync: false
+      # Comma-separated allowlist of admin emails (required: Supabase allows public signups)
+      - key: ADMIN_EMAILS
+        sync: false
+      # Cloudinary image uploads
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      # Break-glass key for curl/scripts (x-admin-key header)
+      - key: ADMIN_SECRET_KEY
+        sync: false
+      # Your Netlify site URL (CORS allow-list); the API also allows any origin
+      - key: CLIENT_URL
+        sync: false

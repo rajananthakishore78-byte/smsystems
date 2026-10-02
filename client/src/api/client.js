@@ -2,6 +2,11 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+export const ADMIN_TOKEN_KEY = 'cctv_admin_token';
+export const ADMIN_REFRESH_KEY = 'cctv_admin_refresh';
+export const ADMIN_KEY_KEY = 'cctv_admin_key';
+export const ADMIN_USER_KEY = 'cctv_admin_user';
+
 export const api = axios.create({
   baseURL: API_BASE,
   timeout: 25000,
@@ -9,8 +14,8 @@ export const api = axios.create({
 
 // Attach authorization headers automatically
 api.interceptors.request.use((config) => {
-  const adminToken = localStorage.getItem('cctv_admin_token');
-  const adminKey = localStorage.getItem('cctv_admin_key');
+  const adminToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+  const adminKey = localStorage.getItem(ADMIN_KEY_KEY);
 
   if (adminToken) {
     config.headers.Authorization = `Bearer ${adminToken}`;
@@ -22,6 +27,61 @@ api.interceptors.request.use((config) => {
 }, (error) => {
   return Promise.reject(error);
 });
+
+// Supabase access tokens expire (1 hour by default). When a request comes back
+// 401 we refresh the session once, then replay the original request.
+let refreshInFlight = null;
+
+const refreshAdminToken = () => {
+  if (refreshInFlight) return refreshInFlight;
+
+  const refreshToken = localStorage.getItem(ADMIN_REFRESH_KEY);
+  if (!refreshToken) return Promise.reject(new Error('No admin refresh token'));
+
+  refreshInFlight = api
+    .post('/auth/refresh', { refreshToken })
+    .then(({ data }) => {
+      if (!data?.token) throw new Error('Session refresh failed');
+      localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+      if (data.refreshToken) localStorage.setItem(ADMIN_REFRESH_KEY, data.refreshToken);
+      if (data.user) localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.user));
+      return data.token;
+    })
+    .finally(() => {
+      refreshInFlight = null;
+    });
+
+  return refreshInFlight;
+};
+
+export const clearAdminSession = () => {
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem(ADMIN_REFRESH_KEY);
+  localStorage.removeItem(ADMIN_KEY_KEY);
+  localStorage.removeItem(ADMIN_USER_KEY);
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config;
+    const status = error.response?.status;
+    const isAuthEndpoint = /\/auth\/(login|refresh)/.test(original?.url || '');
+
+    if (status === 401 && original && !original._retried && !isAuthEndpoint && localStorage.getItem(ADMIN_REFRESH_KEY)) {
+      original._retried = true;
+      try {
+        const token = await refreshAdminToken();
+        original.headers = { ...original.headers, Authorization: `Bearer ${token}` };
+        return api(original);
+      } catch {
+        clearAdminSession();
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 // Products API
 export const getProducts = (params) => api.get('/products', { params });
@@ -54,6 +114,8 @@ export const uploadImage = (file) => {
   });
 };
 
-// Admin Auth
-export const adminLogin = (passcode, email) => api.post('/auth/login', { passcode, email });
+// Admin Auth (Supabase Auth, verified server side)
+export const adminLogin = (email, password) => api.post('/auth/login', { email, password });
+export const adminLoginWithPasscode = (passcode, email) => api.post('/auth/login', { passcode, email });
+export const refreshAdminSession = (refreshToken) => api.post('/auth/refresh', { refreshToken });
 export const getAuthStatus = () => api.get('/auth/status');

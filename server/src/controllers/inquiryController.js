@@ -1,20 +1,8 @@
-import { supabase } from '../config/supabase.js';
-import { fallbackDb } from '../database/fallbackDb.js';
+import { store } from '../database/store.js';
 
 export const getInquiries = async (req, res) => {
   try {
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('inquiries')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (!error && data && data.length > 0) {
-        return res.json({ success: true, count: data.length, data });
-      }
-    }
-
-    const data = await fallbackDb.getInquiries();
+    const data = await store.getInquiries();
     return res.json({ success: true, count: data.length, data });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
@@ -23,7 +11,10 @@ export const getInquiries = async (req, res) => {
 
 export const createInquiry = async (req, res) => {
   try {
-    const { name, customer_name, phone, customer_phone, email, customer_email, service_type, camera_count, product_name, message } = req.body;
+    const {
+      name, customer_name, phone, customer_phone, email, customer_email,
+      service_type, camera_count, product_name, message
+    } = req.body;
 
     const leadData = {
       customer_name: customer_name || name,
@@ -43,18 +34,7 @@ export const createInquiry = async (req, res) => {
       });
     }
 
-    if (supabase) {
-      const { data, error } = await supabase.from('inquiries').insert([leadData]).select();
-      if (!error && data && data[0]) {
-        return res.status(201).json({
-          success: true,
-          message: 'Thank you! Your CCTV inquiry has been received. Our showroom technician will contact you shortly.',
-          data: data[0]
-        });
-      }
-    }
-
-    const created = await fallbackDb.createInquiry(leadData);
+    const created = await store.createInquiry(leadData);
     return res.status(201).json({
       success: true,
       message: 'Thank you! Your CCTV inquiry has been received. Our showroom technician will contact you shortly.',
@@ -67,26 +47,12 @@ export const createInquiry = async (req, res) => {
 
 export const updateInquiryStatus = async (req, res) => {
   try {
-    const { id } = req.params;
     const { status } = req.body;
-
     if (!status) {
       return res.status(400).json({ success: false, message: 'Status is required' });
     }
 
-    if (supabase) {
-      const { data, error } = await supabase
-        .from('inquiries')
-        .update({ status })
-        .eq('id', id)
-        .select();
-
-      if (!error && data && data[0]) {
-        return res.json({ success: true, data: data[0] });
-      }
-    }
-
-    const updated = await fallbackDb.updateInquiryStatus(id, status);
+    const updated = await store.updateInquiryStatus(req.params.id, status);
     if (!updated) {
       return res.status(404).json({ success: false, message: 'Inquiry not found' });
     }

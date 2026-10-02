@@ -1,6 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from '../firebase.js';
-import { adminLogin as apiAdminLogin } from '../api/client.js';
+import {
+  adminLogin as apiAdminLogin,
+  adminLoginWithPasscode as apiAdminLoginWithPasscode,
+  refreshAdminSession,
+  getAuthStatus,
+  clearAdminSession,
+  ADMIN_TOKEN_KEY,
+  ADMIN_REFRESH_KEY,
+  ADMIN_KEY_KEY,
+  ADMIN_USER_KEY
+} from '../api/client.js';
 
 const AuthContext = createContext();
 
@@ -9,50 +18,88 @@ export const AuthProvider = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Restore the saved session on load. A refresh token also proves the account
+  // is still allowed in, so a revoked admin is signed out immediately.
   useEffect(() => {
-    // Check local storage for persistent admin session
-    const savedToken = localStorage.getItem('cctv_admin_token');
-    const savedUser = localStorage.getItem('cctv_admin_user');
+    const bootstrap = async () => {
+      const savedToken = localStorage.getItem(ADMIN_TOKEN_KEY);
+      const savedUser = localStorage.getItem(ADMIN_USER_KEY);
+      const savedRefresh = localStorage.getItem(ADMIN_REFRESH_KEY);
 
-    if (savedToken && savedUser) {
-      try {
-        setAdminUser(JSON.parse(savedUser));
-        setIsAdmin(true);
-      } catch (e) {
-        localStorage.removeItem('cctv_admin_token');
-        localStorage.removeItem('cctv_admin_user');
-      }
-    }
+      // The auth mode tells us whether a refresh token is expected at all.
+      const statusRes = await getAuthStatus().catch(() => null);
+      const mode = statusRes?.data?.auth?.mode;
+      let restored = false;
 
-    // Also listen to Firebase auth if available
-    let unsubscribe = () => {};
-    if (auth) {
-      unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          const token = await user.getIdToken();
-          localStorage.setItem('cctv_admin_token', token);
-          const userData = { email: user.email, uid: user.uid, role: 'admin' };
-          localStorage.setItem('cctv_admin_user', JSON.stringify(userData));
-          setAdminUser(userData);
-          setIsAdmin(true);
+      if (savedRefresh) {
+        try {
+          const { data } = await refreshAdminSession(savedRefresh);
+          if (data?.token) {
+            localStorage.setItem(ADMIN_TOKEN_KEY, data.token);
+            if (data.refreshToken) localStorage.setItem(ADMIN_REFRESH_KEY, data.refreshToken);
+            localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(data.user));
+            setAdminUser(data.user);
+            setIsAdmin(true);
+            restored = true;
+          }
+        } catch {
+          clearAdminSession();
         }
-      });
-    }
+      } else if (mode === 'passcode' && savedToken && savedUser) {
+        try {
+          setAdminUser(JSON.parse(savedUser));
+          setIsAdmin(true);
+          restored = true;
+        } catch {
+          clearAdminSession();
+        }
+      } else if (savedToken && mode && mode !== 'passcode') {
+        // Leftover session from the old passcode scheme with nothing to refresh.
+        clearAdminSession();
+      }
 
-    setLoading(false);
-    return () => unsubscribe();
+      if (!restored) {
+        setAdminUser(null);
+        setIsAdmin(false);
+      }
+      setLoading(false);
+    };
+
+    bootstrap();
   }, []);
 
-  const loginWithPasscode = async (passcode, email = 'admin@securevisioncctv.com') => {
+  const startSession = ({ token, refreshToken, user }) => {
+    localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    if (refreshToken) localStorage.setItem(ADMIN_REFRESH_KEY, refreshToken);
+    localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+    setAdminUser(user);
+    setIsAdmin(true);
+  };
+
+  // Supabase Auth sign-in (email + password)
+  const loginWithEmail = async (email, password) => {
     try {
-      const res = await apiAdminLogin(passcode, email);
+      const res = await apiAdminLogin(email, password);
       if (res.data.success) {
-        const { token, user } = res.data;
-        localStorage.setItem('cctv_admin_token', token);
-        localStorage.setItem('cctv_admin_key', token);
-        localStorage.setItem('cctv_admin_user', JSON.stringify(user));
-        setAdminUser(user);
-        setIsAdmin(true);
+        startSession(res.data);
+        return { success: true };
+      }
+      return { success: false, message: res.data.message };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || 'Sign in failed. Please check your email and password.'
+      };
+    }
+  };
+
+  // Fallback for servers running without Supabase Auth configured.
+  const loginWithPasscode = async (passcode, email = 'admin@smsystems.in') => {
+    try {
+      const res = await apiAdminLoginWithPasscode(passcode, email);
+      if (res.data.success) {
+        startSession(res.data);
+        localStorage.setItem(ADMIN_KEY_KEY, res.data.token);
         return { success: true };
       }
       return { success: false, message: res.data.message };
@@ -64,39 +111,8 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const loginWithFirebase = async (email, password) => {
-    if (!auth) {
-      return { success: false, message: 'Firebase Client is not configured. Use the Admin Passcode option.' };
-    }
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const token = await userCredential.user.getIdToken();
-      const user = {
-        email: userCredential.user.email,
-        uid: userCredential.user.uid,
-        role: 'admin'
-      };
-      localStorage.setItem('cctv_admin_token', token);
-      localStorage.setItem('cctv_admin_user', JSON.stringify(user));
-      setAdminUser(user);
-      setIsAdmin(true);
-      return { success: true };
-    } catch (err) {
-      return { success: false, message: err.message };
-    }
-  };
-
-  const logout = async () => {
-    if (auth) {
-      try {
-        await signOut(auth);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    localStorage.removeItem('cctv_admin_token');
-    localStorage.removeItem('cctv_admin_key');
-    localStorage.removeItem('cctv_admin_user');
+  const logout = () => {
+    clearAdminSession();
     setAdminUser(null);
     setIsAdmin(false);
   };
@@ -107,8 +123,8 @@ export const AuthProvider = ({ children }) => {
         adminUser,
         isAdmin,
         loading,
+        loginWithEmail,
         loginWithPasscode,
-        loginWithFirebase,
         logout
       }}
     >

@@ -40,7 +40,7 @@ export default function Navbar() {
       {/* Top Professional Announcement Bar */}
       <div className="bg-brand-600 text-white text-xs sm:text-sm py-2 px-4 font-medium">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-1 sm:gap-4">
-          <div className="flex items-center gap-2 text-center sm:text-left truncate">
+          <div className="flex items-center gap-2 text-center sm:text-left truncate w-full min-w-0">
             <Sparkles className="w-4 h-4 flex-shrink-0 text-amber-200" />
             <span className="truncate">{settings.announcement_bar || "Exclusive Showroom Offer: Up to 40% OFF on 4K Kits!"}</span>
           </div>
@@ -62,9 +62,9 @@ export default function Navbar() {
 
       {/* Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+        <div className="flex items-center justify-between h-20 gap-2 sm:gap-4">
           {/* Brand Logo */}
-          <Link to="/" className="flex items-center gap-3 group flex-shrink-0">
+          <Link to="/" className="flex items-center gap-3 group min-w-0">
             {settings.logo_url ? (
               <img
                 src={settings.logo_url}
@@ -76,9 +76,9 @@ export default function Navbar() {
                 <Camera className="w-6 h-6 text-white stroke-[2.2]" />
               </div>
             )}
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors truncate">
                   {(() => {
                     const parts = (settings.showroom_name || 'SM SYSTEMS').trim().split(/\s+/);
                     return (

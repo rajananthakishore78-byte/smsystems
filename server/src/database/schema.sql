@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS showroom_settings (
     phone_primary VARCHAR(50) DEFAULT '+91 98765 43210',
     phone_secondary VARCHAR(50) DEFAULT '+91 91234 56789',
     whatsapp_number VARCHAR(50) DEFAULT '919876543210',
-    email VARCHAR(150) DEFAULT 'contact@securevisioncctv.com',
+    email VARCHAR(150) DEFAULT 'sales@smsystems.in',
     address TEXT DEFAULT '124, Orange Boulevard, Electronics & Security Hub, 1st Floor, Tech Park Road',
     city VARCHAR(100) DEFAULT 'Chennai',
     state VARCHAR(100) DEFAULT 'Tamil Nadu',
@@ -83,3 +83,27 @@ CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_featured ON products(is_featured);
 CREATE INDEX IF NOT EXISTS idx_products_deal_of_day ON products(is_deal_of_day);
 CREATE INDEX IF NOT EXISTS idx_inquiries_status ON inquiries(status);
+
+-- ==============================================================
+-- ROW LEVEL SECURITY
+-- The API connects as the table owner (which bypasses RLS), so these rules only
+-- restrict the browser-safe publishable key going through PostgREST/Storage.
+-- Without them, anyone holding the publishable key could read customer phone
+-- numbers and delete the catalog.
+-- ==============================================================
+
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE offers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inquiries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE showroom_settings ENABLE ROW LEVEL SECURITY;
+
+-- Catalog data is public: read-only access for the publishable key.
+DROP POLICY IF EXISTS "public read products" ON products;
+CREATE POLICY "public read products" ON products FOR SELECT TO anon, authenticated USING (true);
+
+-- Only live promotional banners are publicly readable.
+DROP POLICY IF EXISTS "public read active offers" ON offers;
+CREATE POLICY "public read active offers" ON offers FOR SELECT TO anon, authenticated USING (is_active = true);
+
+-- inquiries and showroom_settings intentionally have no policies: only the API
+-- (connecting as the owner) may read or write them.

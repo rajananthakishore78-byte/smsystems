@@ -81,7 +81,7 @@ export default function AdminLayout() {
           <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80">
             <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Logged In As</p>
             <p className="text-xs font-semibold text-slate-200 truncate mt-0.5">
-              {adminUser?.email || 'admin@securevisioncctv.com'}
+              {adminUser?.email || 'admin@smsystems.in'}
             </p>
             <span className="text-[10px] inline-block mt-1 font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
               Full Administrator

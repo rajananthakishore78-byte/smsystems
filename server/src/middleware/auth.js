@@ -1,49 +1,53 @@
-import { admin, isFirebaseConfigured } from '../config/firebase.js';
+import { isAdminEmail, isSupabaseAuthConfigured, verifySupabaseToken } from '../config/supabaseAuth.js';
 
 export const requireAdmin = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    const adminKeyHeader = req.headers['x-admin-key'];
-    const masterKey = process.env.ADMIN_SECRET_KEY || 'cctv_admin_secure_2026';
+    const masterKey = process.env.ADMIN_SECRET_KEY;
+    const adminKey = req.headers['x-admin-key'];
 
-    // 1. Direct master key check
-    if (adminKeyHeader && adminKeyHeader === masterKey) {
+    // 1. Break-glass key for server-side scripts and curl. It lives only in
+    // server/.env and is never shipped to the browser.
+    if (masterKey && adminKey && adminKey === masterKey) {
       req.user = { role: 'admin', method: 'admin-key' };
       return next();
     }
 
+    const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
-        message: 'Unauthorized: Admin authorization token or admin key required.'
+        message: 'Unauthorized: sign in to the admin portal or provide the admin key.'
       });
     }
 
-    const token = authHeader.split('Bearer ')[1].trim();
-
-    // 2. Direct token equals master key check
-    if (token === masterKey || token === 'demo-admin-session-token') {
-      req.user = { role: 'admin', method: 'direct-token' };
-      return next();
+    if (!isSupabaseAuthConfigured) {
+      return res.status(503).json({
+        success: false,
+        message: 'Supabase Auth is not configured on the server (set SUPABASE_URL and SUPABASE_JWKS_URL).'
+      });
     }
 
-    // 3. Firebase Admin token verification if configured
-    if (isFirebaseConfigured) {
-      try {
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        req.user = decodedToken;
-        return next();
-      } catch (fbErr) {
-        return res.status(403).json({
-          success: false,
-          message: 'Invalid or expired Firebase Auth token',
-          error: fbErr.message
-        });
-      }
+    // 2. Supabase Auth session JWT, verified locally against the project JWKS.
+    let payload;
+    try {
+      payload = await verifySupabaseToken(authHeader.slice('Bearer '.length).trim());
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired session. Please sign in again.',
+        error: err.code || err.message
+      });
     }
 
-    // Default development fallback for local testing
-    req.user = { role: 'admin', method: 'dev-fallback' };
+    // 3. A valid Supabase login is not automatically an admin.
+    if (!isAdminEmail(payload.email)) {
+      return res.status(403).json({
+        success: false,
+        message: 'This account is not authorized for the showroom admin portal.'
+      });
+    }
+
+    req.user = { id: payload.sub, email: payload.email, role: 'admin', method: 'supabase-jwt' };
     return next();
   } catch (error) {
     return res.status(500).json({

@@ -1,4 +1,4 @@
-# 📹 ApexVision - CCTV Camera Showroom & Security Systems Portal
+# 📹 SM SYSTEMS - CCTV Camera Showroom & Security Systems Portal
 
 A modern, high-converting, full-stack website and content management system for a **CCTV Camera Showroom & Security Surveillance Business**. Designed with a vibrant **Orange & Surveillance Slate Theme**, rich product showcase with dynamic discount badges, quotation generators, WhatsApp ordering, and a secure **Admin Portal** for total site management.
 
@@ -50,7 +50,7 @@ A modern, high-converting, full-stack website and content management system for 
 | **Backend** | Node.js, Express.js REST API, Multer (Memory Streaming), CORS |
 | **Database** | **PostgreSQL** hosted on **Supabase** (with automatic local turnkey fallback) |
 | **Media CDN** | **Cloudinary** for CCTV product & banner uploads |
-| **Authentication** | **Firebase** Authentication (Web Client & Firebase Admin SDK) |
+| **Authentication** | **Supabase Auth** (email + password, session JWTs verified locally against Supabase JWKS) |
 
 ---
 
@@ -72,29 +72,47 @@ npm run dev
 - **Admin Portal**: `http://localhost:5173/admin`
 - **Backend API**: `http://localhost:5000/api`
 
-### 3. Admin Login Credentials
-- **Access URL**: `http://localhost:5173/admin/login`
-- **Default Master Passcode**: `cctv_admin_secure_2026` *(or `admin123`)*
+### 3. Admin Portal Access (Supabase Auth)
+The admin portal signs in with **Supabase Auth** (email + password). The API verifies every session JWT locally against your project's JWKS endpoint, so no shared passcode is ever sent to the browser.
+1. Open **Dashboard ➔ Authentication ➔ Users ➔ Add user**, create the admin account and tick **Auto Confirm User**.
+2. Add that same address to `ADMIN_EMAILS` in `server/.env`:
+   ```env
+   ADMIN_EMAILS=admin@your-showroom.com,manager@your-showroom.com
+   ```
+3. Restart the API (`.env` is read at startup) and sign in at `http://localhost:5173/admin/login`.
+
+A valid Supabase login alone is not enough: any account missing from `ADMIN_EMAILS` is rejected with `403`. Access tokens expire hourly and are refreshed automatically in the background. `ADMIN_SECRET_KEY` is kept as a break-glass key for scripts and `curl` (`x-admin-key` header) and doubles as the passcode login for local setups without Supabase Auth.
 
 ---
 
-## ☁️ Cloud Service Configurations (Supabase, Cloudinary, Firebase)
+## ☁️ Cloud Service Configurations (PostgreSQL, Supabase Auth, Cloudinary)
 
 Whenever you are ready to link your production cloud accounts, simply update `server/.env` and `client/.env`:
 
-### 1. Supabase (PostgreSQL Database)
+### 1. PostgreSQL Database (Supabase)
+Every product, offer, inquiry and showroom setting lives in PostgreSQL (Supabase). Products, offers and settings are seeded automatically the first time the tables are created.
 1. Go to [supabase.com](https://supabase.com/) and create a new project.
-2. In the left sidebar, click **SQL Editor** ➔ **New Query**.
-3. Copy the contents of [`server/src/database/schema.sql`](file:///server/src/database/schema.sql) and click **Run**.
-4. In Supabase, go to **Project Settings** ➔ **API**.
-5. Copy your **Project URL** and **service_role secret key**.
-6. In `server/.env`, set:
+2. Copy the connection string from **Project Settings** ➔ **Database** ➔ **Connection string** ➔ **URI**.
+3. In `server/.env`, set:
    ```env
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   DATABASE_URL=postgresql://postgres:YOUR_DB_PASSWORD@db.YOUR_PROJECT_REF.supabase.co:5432/postgres
    ```
+   (set `DATABASE_SSL=false` only when pointing at a local PostgreSQL server without SSL)
+4. Create the tables and seed the showroom catalog:
+   ```bash
+   npm run db:setup --prefix server
+   ```
+   This runs [`server/src/database/schema.sql`](server/src/database/schema.sql) and seeds products, offers and settings **only when those tables are empty**, so it is safe to re-run.
+5. Verify the API is talking to PostgreSQL:
+   ```bash
+   curl http://localhost:5000/api/health
+   ```
+   Expected: `"database": { "mode": "postgres", "connected": true, "persistent": true }`.
+
+> Without `DATABASE_URL` the API falls back to an in-memory demo store, where every admin edit is lost when the server restarts.
 
 ### 2. Cloudinary (Image & Banner Uploads)
+✅ **Configured & verified** — the API initializes Cloudinary at boot (`✅ Cloudinary initialized`), and `POST /api/upload` returns real `https://res.cloudinary.com/...` CDN URLs. When keys are absent it falls back to inline base64 data-URIs.
 1. Sign up for a free account at [cloudinary.com](https://cloudinary.com/).
 2. On your Cloudinary Dashboard, copy your **Cloud Name**, **API Key**, and **API Secret**.
 3. In `server/.env`, set:
@@ -104,31 +122,75 @@ Whenever you are ready to link your production cloud accounts, simply update `se
    CLOUDINARY_API_SECRET=your_api_secret
    ```
 
-### 3. Firebase (Admin Authentication)
-1. Go to [console.firebase.google.com](https://console.firebase.google.com/) and create a project.
-2. Enable **Authentication** ➔ **Sign-in method** ➔ **Email/Password**.
-3. Go to **Project Settings** ➔ **Service accounts** ➔ Click **Generate new private key**.
-4. In `server/.env`, fill in:
-   ```env
-   FIREBASE_PROJECT_ID=your-project-id
-   FIREBASE_CLIENT_EMAIL=your-service-account-email
-   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
-   ```
-5. *(Optional for Client SDK)* In **Project Settings** ➔ **General** ➔ **Your apps** ➔ Add a Web App, and paste the config keys into `client/.env`.
+### 3. Supabase Keys (Auth, Storage & REST)
+Admin sign-in, image storage and any direct REST access use the keys from **Project Settings ➔ API keys**:
+```env
+SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxx   # safe to expose in the browser
+SUPABASE_SECRET_KEY=sb_secret_xxx             # server-side only, never ship this
+SUPABASE_JWKS_URL=https://YOUR_PROJECT_REF.supabase.co/auth/v1/.well-known/jwks.json
+ADMIN_EMAILS=admin@your-showroom.com
+```
+`DATABASE_URL`, `SUPABASE_SECRET_KEY` and `ADMIN_SECRET_KEY` are server-only secrets - keep them out of `client/.env` and out of Git.
+
+> **Row level security:** `schema.sql` enables RLS on all tables and grants the publishable key read-only access to `products` and active `offers`. Without those policies the publishable key could read customer inquiries and delete the catalog through PostgREST.
+
+> **Legacy:** Firebase admin auth (`FIREBASE_*` in `server/.env`, `client/src/firebase.js`) is no longer used and can be removed once you are happy with Supabase Auth.
 
 ---
 
-## 🚢 Deployment Guide
+## 🚢 Deployment Guide (Netlify frontend + Render API)
 
-### Option A: Monolithic Deployment (Render / Railway)
-The Express server is configured to serve the production React build from `client/dist`.
-1. Run `npm run build` to compile the Vite frontend.
-2. Set your environment variables in your hosting dashboard.
-3. Start the server with `npm start`.
+The site is split into two services:
 
-### Option B: Decoupled Deployment
-- **Frontend**: Deploy `client/` to **Vercel**, **Netlify**, or **Firebase Hosting**. Set `VITE_API_URL` to your backend URL.
-- **Backend**: Deploy `server/` to **Render**, **Railway**, or **Fly.io**. Set `CLIENT_URL` to your deployed frontend domain.
+| Service | Host | Config file | URL |
+| :--- | :--- | :--- | :--- |
+| **API** (Express + PostgreSQL) | [Render](https://render.com) | [`render.yaml`](render.yaml) | `https://YOUR-SERVICE.onrender.com` |
+| **Frontend** (React build) | [Netlify](https://netlify.com) | [`netlify.toml`](netlify.toml) | `https://YOUR-SITE.netlify.app` |
+
+### 1. API on Render
+1. Render dashboard ➔ **New ➔ Blueprint** ➔ connect this repo (it picks up `render.yaml`).
+2. Render asks for every `sync: false` variable — copy the values from your local `server/.env`:
+
+   | Variable | Value |
+   | :--- | :--- |
+   | `DATABASE_URL` | Supabase **IPv4 pooler** string: `postgresql://postgres.<REF>:<DB_PASSWORD>@aws-0-<region>.pooler.supabase.com:5432/postgres` |
+   | `DATABASE_SSL` | `true` |
+   | `SUPABASE_URL` | `https://<REF>.supabase.co` |
+   | `SUPABASE_PUBLISHABLE_KEY` | `sb_publishable_…` |
+   | `SUPABASE_SECRET_KEY` | `sb_secret_…` (server-side only) |
+   | `SUPABASE_JWKS_URL` | `https://<REF>.supabase.co/auth/v1/.well-known/jwks.json` |
+   | `ADMIN_EMAILS` | your admin email(s), comma separated |
+   | `CLOUDINARY_CLOUD_NAME` / `_API_KEY` / `_API_SECRET` | Cloudinary dashboard values |
+   | `ADMIN_SECRET_KEY` | a fresh random string (break-glass `x-admin-key`) |
+   | `CLIENT_URL` | your Netlify URL, e.g. `https://YOUR-SITE.netlify.app` |
+
+   > ⚠️ Use the **pooler** host (`aws-0-….pooler.supabase.com`), not `db.<REF>.supabase.co` — the direct host is IPv6-only and causes intermittent `ENOTFOUND`/`ECONNRESET` on most hosts. It connects as `postgres` with `bypassrls=true`, so the API keeps working while RLS still protects the publishable key.
+3. Deploy. Health check: `https://YOUR-SERVICE.onrender.com/api/health` must return `"database": {"mode": "postgres", "connected": true}`.
+
+### 2. Frontend on Netlify
+1. Netlify ➔ **Add new site ➔ Import an existing repo** ➔ pick this repo. `netlify.toml` already sets the build (`npm install --prefix client && npm run build`), publish dir (`client/dist`), Node 22, and the SPA fallback (`/* → /index.html`).
+2. Set **Site settings ➔ Environment variables**: `VITE_API_URL=https://YOUR-SERVICE.onrender.com/api` (note the `/api` suffix — it is baked into the bundle at build time, so redeploy after changing it).
+   - *Alternative, no CORS at all:* instead of `VITE_API_URL`, uncomment the `/api/*` proxy redirect in `netlify.toml` (it must sit above the `/*` fallback) so Netlify forwards API calls to Render.
+3. Deploy. Open the site, then `/admin/login` and sign in.
+
+### 3. Post-deploy checks
+```bash
+curl https://YOUR-SERVICE.onrender.com/api/health          # postgres connected
+curl https://YOUR-SERVICE.onrender.com/api/auth/status     # cloudinary: true, supabaseAuth: true
+curl https://YOUR-SERVICE.onrender.com/api/products        # 10 seeded products
+```
+Then in the browser: home page renders, admin login works, and a logo upload returns a `res.cloudinary.com` URL.
+
+### Local production preview
+```bash
+npm run build     # builds client/dist
+npm start         # Express serves the API + the built client on :5000
+```
+
+### Other hosts
+- **Monolithic (Render/Railway single service):** the server already serves `client/dist`, so build the client and start with `npm start` — no `VITE_API_URL` needed.
+- **Vercel/Firebase hosting:** set `VITE_API_URL` exactly like the Netlify step and add an SPA rewrite to `/index.html`.
 
 ---
 
