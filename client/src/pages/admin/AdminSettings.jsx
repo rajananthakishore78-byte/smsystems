@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Save, CheckCircle2, Building, Phone, MapPin, Clock, Sparkles, Loader2, AlertCircle, Image, Trash2, Upload } from 'lucide-react';
+import { Settings, Save, CheckCircle2, Building, Phone, MapPin, Clock, Sparkles, Loader2, AlertCircle, Image, Trash2, Upload, Share2 } from 'lucide-react';
 import { getSettings, updateSettings, uploadImage } from '../../api/client.js';
 import { useInquiry } from '../../context/InquiryContext.jsx';
 
@@ -16,7 +16,9 @@ export default function AdminSettings() {
     address: '',
     google_maps_url: '',
     opening_hours: '',
-    announcement_bar: ''
+    announcement_bar: '',
+    instagram_url: '',
+    facebook_url: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -280,6 +282,41 @@ export default function AdminSettings() {
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500"
               />
+            </div>
+          </div>
+
+          {/* Social Media Links */}
+          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-brand-400" />
+              <span>Social Media Links</span>
+            </h3>
+            <p className="text-[11px] text-slate-400">
+              Paste your showroom's profile URLs. The Instagram & Facebook icons in the website footer open these links in a new tab.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Instagram Profile URL</label>
+                <input
+                  type="url"
+                  placeholder="https://www.instagram.com/your-showroom"
+                  value={form.instagram_url || ''}
+                  onChange={(e) => setForm({ ...form, instagram_url: e.target.value })}
+                  className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500 font-mono text-[11px]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Facebook Page URL</label>
+                <input
+                  type="url"
+                  placeholder="https://www.facebook.com/your-showroom"
+                  value={form.facebook_url || ''}
+                  onChange={(e) => setForm({ ...form, facebook_url: e.target.value })}
+                  className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500 font-mono text-[11px]"
+                />
+              </div>
             </div>
           </div>
 

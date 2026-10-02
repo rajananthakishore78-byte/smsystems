@@ -17,14 +17,21 @@ import {
 } from 'lucide-react';
 import { useInquiry } from '../context/InquiryContext.jsx';
 
-// Social pages opened in a new tab from the footer
-const SOCIAL_LINKS = [
+// Social pages opened in a new tab from the footer.
+// URLs come from Admin Portal -> Settings; generic homepages are the fallback.
+const FALLBACK_SOCIAL_LINKS = [
   { name: 'Instagram', href: 'https://www.instagram.com/', Icon: Instagram },
   { name: 'Facebook', href: 'https://www.facebook.com/', Icon: Facebook }
 ];
 
+const getSocialLinks = (settings = {}) => [
+  { ...FALLBACK_SOCIAL_LINKS[0], href: settings.instagram_url?.trim() || FALLBACK_SOCIAL_LINKS[0].href },
+  { ...FALLBACK_SOCIAL_LINKS[1], href: settings.facebook_url?.trim() || FALLBACK_SOCIAL_LINKS[1].href }
+];
+
 export default function Footer() {
   const { settings, getWhatsAppLink } = useInquiry();
+  const socialLinks = getSocialLinks(settings);
 
   return (
     <footer className="bg-slate-950 border-t border-slate-800 text-slate-400">
@@ -113,7 +120,7 @@ export default function Footer() {
           <div className="pt-3">
             <p className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Follow Us:</p>
             <div className="flex items-center gap-3">
-              {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+              {socialLinks.map(({ name, href, Icon }) => (
                 <a
                   key={name}
                   href={href}
@@ -234,7 +241,7 @@ export default function Footer() {
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
           <p>© {new Date().getFullYear()} {settings.showroom_name}. All Rights Reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
-            {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+            {socialLinks.map(({ name, href, Icon }) => (
               <a
                 key={name}
                 href={href}

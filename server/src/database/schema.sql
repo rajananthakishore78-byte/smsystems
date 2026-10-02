@@ -71,12 +71,17 @@ CREATE TABLE IF NOT EXISTS showroom_settings (
     google_maps_url TEXT DEFAULT 'https://maps.google.com',
     opening_hours VARCHAR(255) DEFAULT 'Mon - Sat: 9:30 AM - 8:30 PM | Sunday: 10:00 AM - 5:00 PM',
     announcement_bar TEXT DEFAULT '🔥 Mega Showroom Clearance: Get Free Site Inspection & 2-Year On-Site Warranty on all 4K CCTV Kits!',
+    instagram_url TEXT DEFAULT '',
+    facebook_url TEXT DEFAULT '',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Add logo column to existing installations
 ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT '';
+-- Social profile links (editable from Admin Portal -> Settings)
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS instagram_url TEXT DEFAULT '';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS facebook_url TEXT DEFAULT '';
 
 -- Index for speedy queries
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);

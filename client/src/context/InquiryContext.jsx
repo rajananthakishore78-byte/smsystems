@@ -17,7 +17,9 @@ export const InquiryProvider = ({ children }) => {
     state: "Tamil Nadu",
     pincode: "600040",
     opening_hours: "Mon - Sat: 9:00 AM - 9:00 PM | Sun: 10:00 AM - 6:00 PM",
-    announcement_bar: "⚡ Exclusive Showroom Offer: Get FREE On-Site Site Survey & 2-Year Replacement Warranty on all 4K CCTV setups!"
+    announcement_bar: "⚡ Exclusive Showroom Offer: Get FREE On-Site Site Survey & 2-Year Replacement Warranty on all 4K CCTV setups!",
+    instagram_url: "",
+    facebook_url: ""
   });
 
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
