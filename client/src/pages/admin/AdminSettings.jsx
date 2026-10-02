@@ -309,7 +309,7 @@ export default function AdminSettings() {
                 <label className="block font-semibold text-slate-300 mb-1">WhatsApp Number (with country code)</label>
                 <input
                   type="text"
-                  placeholder="e.g. 919840123456"
+                  placeholder="e.g. 919486171929"
                   value={form.whatsapp_number}
                   onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })}
                   className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500 font-mono"

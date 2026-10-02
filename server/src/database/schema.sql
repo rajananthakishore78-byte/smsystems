@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS showroom_settings (
     tagline VARCHAR(255) DEFAULT 'Authorized Security Surveillance & CCTV Camera Experience Center',
     phone_primary VARCHAR(50) DEFAULT '+91 98765 43210',
     phone_secondary VARCHAR(50) DEFAULT '+91 91234 56789',
-    whatsapp_number VARCHAR(50) DEFAULT '919876543210',
+    whatsapp_number VARCHAR(50) DEFAULT '919486171929',
     email VARCHAR(150) DEFAULT 'sales@smsystems.in',
     address TEXT DEFAULT '124, Orange Boulevard, Electronics & Security Hub, 1st Floor, Tech Park Road',
     city VARCHAR(100) DEFAULT 'Chennai',

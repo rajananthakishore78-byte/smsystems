@@ -10,7 +10,7 @@ export const InquiryProvider = ({ children }) => {
     tagline: "Premier CCTV Camera Showroom & Certified Surveillance Installation Center",
     phone_primary: "+91 98401 23456",
     phone_secondary: "+91 94440 98765",
-    whatsapp_number: "919840123456",
+    whatsapp_number: "919486171929",
     email: "sales@smsystems.in",
     address: "Showroom No. 18, Orange Square, Ring Road Junction, Anna Nagar, Chennai",
     city: "Chennai",
@@ -61,7 +61,7 @@ export const InquiryProvider = ({ children }) => {
 
   // Helper for generating direct WhatsApp inquiry link
   const getWhatsAppLink = (product = null) => {
-    const phone = settings.whatsapp_number ? settings.whatsapp_number.replace(/[^0-9]/g, '') : '919840123456';
+    const phone = settings.whatsapp_number ? settings.whatsapp_number.replace(/[^0-9]/g, '') : '919486171929';
     let text = `Hello ${settings.showroom_name}! I am visiting your website and interested in your CCTV cameras & security services.`;
     if (product) {
       text = `Hello ${settings.showroom_name}! I am interested in *${product.name}* (Offer Price: ₹${product.offer_price?.toLocaleString('en-IN')}). Can you please share showroom demo availability and installation quote?`;

@@ -309,7 +309,7 @@ export const defaultSettings = {
   tagline: "Premier CCTV Camera Showroom & Certified Surveillance Installation Center",
   phone_primary: "+91 98401 23456",
   phone_secondary: "+91 94440 98765",
-  whatsapp_number: "919840123456",
+  whatsapp_number: "919486171929",
   email: "sales@smsystems.in",
   address: "Showroom No. 18, Orange Square, Ring Road Junction, Anna Nagar, Chennai, Tamil Nadu - 600040",
   city: "Chennai",
