@@ -24,3 +24,5 @@ Thumbs.db
 
 # Local tool state
 .freebuff/
+
+*.zip
