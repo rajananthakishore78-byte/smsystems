@@ -9,10 +9,13 @@ services:
     runtime: node
     plan: free
     rootDir: server
-    buildCommand: npm install
+    buildCommand: npm install && npm install --prefix ../client && VITE_API_URL=/api npm run build --prefix ../client
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
+      # Build-time: bundled frontend inside the API uses same-origin /api
+      - key: VITE_API_URL
+        value: /api
       # Supabase PostgreSQL - use the IPv4 POOLER host (aws-0-<region>.pooler.supabase.com),
       # the direct db.* host is IPv6-only and fails on many hosts.
       - key: DATABASE_URL
