@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Camera, 
   ShieldCheck, 
@@ -9,24 +9,20 @@ import {
   Search, 
   Menu, 
   X, 
-  Sparkles
+  Sparkles,
+  MapPin
 } from 'lucide-react';
 import { useInquiry } from '../context/InquiryContext.jsx';
 
 export default function Navbar() {
   const { settings, openQuoteModal, getWhatsAppLink } = useInquiry();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
-  const navigate = useNavigate();
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-      setMobileMenuOpen(false);
-    }
-  };
+  // Showroom location on Google Maps (new tab). Falls back to an address
+  // search when no Maps URL is configured in Admin -> Settings.
+  const locationUrl = settings.google_maps_url?.trim()
+    || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(settings.address || 'SM SYSTEMS CCTV Chennai')}`;
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -89,9 +85,6 @@ export default function Navbar() {
                     );
                   })()}
                 </span>
-                <span className="hidden sm:inline text-[10px] font-bold uppercase bg-brand-50 text-brand-700 border border-brand-200 px-1.5 py-0.5 rounded tracking-wider">
-                  Showroom
-                </span>
               </div>
               <p className="text-[11px] text-slate-500 tracking-wide font-medium hidden sm:block">
                 CCTV & Surveillance Experience Center
@@ -99,19 +92,15 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Search Bar (Desktop) */}
-          <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center flex-1 max-w-md mx-4">
-            <div className="relative w-full">
-              <input
-                type="text"
-                placeholder="Search CCTV cameras, 4K kits, DVRs, WiFi..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-sm text-slate-800 placeholder-slate-400 pl-10 pr-4 py-2 rounded-full border border-slate-200 focus:outline-none focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 transition-all"
-              />
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-2.5" />
-            </div>
-          </form>
+          {/* Search Icon (Desktop) - opens full catalog search */}
+          <Link
+            to="/products"
+            title="Search CCTV products"
+            aria-label="Search CCTV products"
+            className="hidden lg:flex p-2.5 rounded-full text-slate-500 hover:text-brand-600 hover:bg-brand-50 border border-transparent hover:border-brand-200 transition-all"
+          >
+            <Search className="w-5 h-5" />
+          </Link>
 
           {/* Desktop Nav Links */}
           <nav className="hidden md:flex items-center gap-1 lg:gap-2">
@@ -135,6 +124,15 @@ export default function Navbar() {
 
           {/* Call to Action Buttons */}
           <div className="hidden sm:flex items-center gap-3">
+            <a
+              href={locationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2.5 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-600 border border-brand-200 transition-all hover:scale-105"
+              title="View showroom location on Google Maps"
+            >
+              <MapPin className="w-5 h-5" />
+            </a>
             <a
               href={getWhatsAppLink()}
               target="_blank"
@@ -175,17 +173,6 @@ export default function Navbar() {
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 space-y-4 shadow-lg">
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <input
-              type="text"
-              placeholder="Search CCTV products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 text-sm text-slate-800 placeholder-slate-400 pl-10 pr-4 py-2.5 rounded-xl border border-slate-200"
-            />
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
-          </form>
-
           <div className="flex flex-col space-y-1">
             {navLinks.map((link) => (
               <Link
@@ -199,7 +186,16 @@ export default function Navbar() {
             ))}
           </div>
 
-          <div className="pt-3 border-t border-slate-100">
+          <div className="pt-3 border-t border-slate-100 flex items-center gap-2">
+            <a
+              href={locationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs font-bold text-brand-600 bg-brand-50 px-3 py-2 rounded-lg border border-brand-200 w-fit"
+            >
+              <MapPin className="w-4 h-4" />
+              Showroom Location
+            </a>
             <a
               href={getWhatsAppLink()}
               target="_blank"
