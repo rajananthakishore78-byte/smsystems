@@ -9,7 +9,7 @@ services:
     runtime: node
     plan: free
     rootDir: server
-    buildCommand: npm install && npm install --prefix ../client && VITE_API_URL=/api npm run build --prefix ../client
+    buildCommand: npm install && npm install --prefix ../client && npm --prefix ../client run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
