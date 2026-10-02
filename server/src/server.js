@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 // Import route handlers
 import productRoutes from './routes/products.js';
 import offerRoutes from './routes/offers.js';
+import categoryRoutes from './routes/categories.js';
 import inquiryRoutes from './routes/inquiries.js';
 import settingRoutes from './routes/settings.js';
 import uploadRoutes from './routes/upload.js';
@@ -57,6 +58,7 @@ app.get('/api/health', async (req, res) => {
 // API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/offers', offerRoutes);
+app.use('/api/categories', categoryRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/upload', uploadRoutes);

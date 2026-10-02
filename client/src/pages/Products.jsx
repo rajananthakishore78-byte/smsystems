@@ -5,13 +5,24 @@ import {
   SlidersHorizontal, 
   Camera
 } from 'lucide-react';
-import { getProducts } from '../api/client.js';
+import { getProducts, getCategories } from '../api/client.js';
 import ProductCard from '../components/ProductCard.jsx';
 import ProductDetailModal from '../components/ProductDetailModal.jsx';
+
+const FALLBACK_CATEGORIES = [
+  'Bullet Cameras',
+  'Dome Cameras',
+  'PTZ Cameras',
+  'Wireless Smart Cameras',
+  'Complete Packages',
+  'DVR & NVR Kits',
+  'Accessories'
+];
 
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
+  const [categoryNames, setCategoryNames] = useState(FALLBACK_CATEGORIES);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -21,18 +32,19 @@ export default function Products() {
   const queryParam = searchParams.get('search') || '';
   const [sortBy, setSortBy] = useState('featured');
 
-  const categories = [
-    'All',
-    'Bullet Cameras',
-    'Dome Cameras',
-    'PTZ Cameras',
-    'Wireless Smart Cameras',
-    'Complete Packages',
-    'DVR & NVR Kits',
-    'Accessories'
-  ];
+  const categories = ['All', ...categoryNames.filter((n) => n !== 'All')];
 
   const brands = ['All', 'Hikvision', 'Dahua', 'CP Plus', 'Imou', 'Uniview', 'Western Digital'];
+
+  useEffect(() => {
+    getCategories({ activeOnly: true })
+      .then((res) => {
+        if (res.data.success && res.data.data.length > 0) {
+          setCategoryNames(res.data.data.map((c) => c.name));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetchProducts();

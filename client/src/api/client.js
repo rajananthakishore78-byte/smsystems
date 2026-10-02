@@ -96,6 +96,13 @@ export const createOffer = (data) => api.post('/offers', data);
 export const updateOffer = (id, data) => api.put(`/offers/${id}`, data);
 export const deleteOffer = (id) => api.delete(`/offers/${id}`);
 
+// Categories API (homepage grid + product filters)
+export const getCategories = (params) => api.get('/categories', { params });
+export const getCategoryById = (id) => api.get(`/categories/${id}`);
+export const createCategory = (data) => api.post('/categories', data);
+export const updateCategory = (id, data) => api.put(`/categories/${id}`, data);
+export const deleteCategory = (id) => api.delete(`/categories/${id}`);
+
 // Inquiries API
 export const submitInquiry = (data) => api.post('/inquiries', data);
 export const getInquiries = () => api.get('/inquiries');

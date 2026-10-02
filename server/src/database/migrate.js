@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { buildInsert, isPostgresConfigured, pool, TABLE_COLUMNS } from './postgresDb.js';
-import { defaultOffers, defaultProducts, defaultSettings } from './seedData.js';
+import { defaultOffers, defaultProducts, defaultSettings, defaultCategories } from './seedData.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -41,6 +41,7 @@ const run = async () => {
   await seedTable('showroom_settings', [defaultSettings]);
   await seedTable('products', defaultProducts);
   await seedTable('offers', defaultOffers);
+  await seedTable('categories', defaultCategories);
 
   await pool.end();
   console.log('🎉 Database is ready.');

@@ -15,30 +15,75 @@ import {
   Award,
   ChevronRight
 } from 'lucide-react';
-import { getProducts, getOffers } from '../api/client.js';
+import { getProducts, getOffers, getCategories } from '../api/client.js';
 import { useInquiry } from '../context/InquiryContext.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import ProductDetailModal from '../components/ProductDetailModal.jsx';
+
+// Shown when the API has no categories yet (or is unreachable)
+const FALLBACK_CATEGORIES = [
+  {
+    name: "Bullet Cameras",
+    icon_url: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=400&q=80",
+    description: "Outdoor, IP67 Weatherproof, Night Vision",
+    tagline: "Outdoor Security"
+  },
+  {
+    name: "Dome Cameras",
+    icon_url: "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=400&q=80",
+    description: "Indoor, Ceiling Mount, Vandal-Proof",
+    tagline: "Home & Office"
+  },
+  {
+    name: "PTZ Cameras",
+    icon_url: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=400&q=80",
+    description: "360° Pan-Tilt-Zoom, Smart AI Tracking",
+    tagline: "Perimeter & Commercial"
+  },
+  {
+    name: "Wireless Smart Cameras",
+    icon_url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80",
+    description: "WiFi & 4G SIM, Solar, Two-Way Audio",
+    tagline: "Plug & Play"
+  },
+  {
+    name: "Complete Packages",
+    icon_url: "https://images.unsplash.com/photo-1528312635006-8ea0bc49ec63?auto=format&fit=crop&w=400&q=80",
+    description: "Turnkey 4-Cam & 8-Cam Kits with Installation",
+    tagline: "Best Value Bundles"
+  },
+  {
+    name: "DVR & NVR Kits",
+    icon_url: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=400&q=80",
+    description: "4K Video Recorders & Surveillance Storage",
+    tagline: "24/7 Recording"
+  }
+];
 
 export default function Home() {
   const { settings, openQuoteModal, getWhatsAppLink } = useInquiry();
   const [products, setProducts] = useState([]);
   const [offers, setOffers] = useState([]);
+  const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [prodRes, offRes] = await Promise.all([
+        const [prodRes, offRes, catRes] = await Promise.all([
           getProducts(),
-          getOffers({ activeOnly: true })
+          getOffers({ activeOnly: true }),
+          getCategories({ activeOnly: true }).catch(() => null)
         ]);
         if (prodRes.data.success) {
           setProducts(prodRes.data.data);
         }
         if (offRes.data.success) {
           setOffers(offRes.data.data);
+        }
+        if (catRes?.data?.success && catRes.data.data.length > 0) {
+          setCategories(catRes.data.data);
         }
       } catch (err) {
         console.error("Error loading home data:", err);
@@ -51,45 +96,6 @@ export default function Home() {
 
   const featuredProducts = products.filter(p => p.is_featured);
   const dealsOfDay = products.filter(p => p.is_deal_of_day);
-
-  const categories = [
-    {
-      name: "Bullet Cameras",
-      icon: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=400&q=80",
-      desc: "Outdoor, IP67 Weatherproof, Night Vision",
-      count: "Outdoor Security"
-    },
-    {
-      name: "Dome Cameras",
-      icon: "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=400&q=80",
-      desc: "Indoor, Ceiling Mount, Vandal-Proof",
-      count: "Home & Office"
-    },
-    {
-      name: "PTZ Cameras",
-      icon: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=400&q=80",
-      desc: "360° Pan-Tilt-Zoom, Smart AI Tracking",
-      count: "Perimeter & Commercial"
-    },
-    {
-      name: "Wireless Smart Cameras",
-      icon: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80",
-      desc: "WiFi & 4G SIM, Solar, Two-Way Audio",
-      count: "Plug & Play"
-    },
-    {
-      name: "Complete Packages",
-      icon: "https://images.unsplash.com/photo-1528312635006-8ea0bc49ec63?auto=format&fit=crop&w=400&q=80",
-      desc: "Turnkey 4-Cam & 8-Cam Kits with Installation",
-      count: "Best Value Bundles"
-    },
-    {
-      name: "DVR & NVR Kits",
-      icon: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=400&q=80",
-      desc: "4K Video Recorders & Surveillance Storage",
-      count: "24/7 Recording"
-    }
-  ];
 
   return (
     <div className="space-y-16 pb-20 bg-white">
@@ -286,13 +292,13 @@ export default function Home() {
               className="group p-4 rounded-2xl bg-white border border-slate-200 hover:border-orange-400 hover:shadow-card-hover transition-all text-center flex flex-col items-center justify-between"
             >
               <div className="w-16 h-16 rounded-xl bg-slate-50 p-2 mb-3 overflow-hidden border border-slate-200 group-hover:scale-105 transition-transform">
-                <img src={cat.icon} alt={cat.name} className="w-full h-full object-cover rounded-lg" />
+                <img src={cat.icon_url || cat.icon} alt={cat.name} className="w-full h-full object-cover rounded-lg" />
               </div>
               <div>
                 <h4 className="text-xs font-bold text-slate-900 group-hover:text-orange-600 transition-colors">
                   {cat.name}
                 </h4>
-                <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">{cat.count}</p>
+                <p className="text-[10px] text-slate-500 mt-1 line-clamp-1">{cat.tagline || cat.count}</p>
               </div>
             </Link>
           ))}

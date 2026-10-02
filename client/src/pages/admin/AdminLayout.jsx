@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Package, 
+  LayoutGrid,
   Tag, 
   Users, 
   Settings, 
@@ -27,6 +28,7 @@ export default function AdminLayout() {
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, exact: true },
     { name: 'Products & Pricing', path: '/admin/products', icon: Package },
+    { name: 'Categories', path: '/admin/categories', icon: LayoutGrid },
     { name: 'Offers & Banners', path: '/admin/offers', icon: Tag },
     { name: 'Customer Inquiries', path: '/admin/inquiries', icon: Users },
     { name: 'Showroom Settings', path: '/admin/settings', icon: Settings },

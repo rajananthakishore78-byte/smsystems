@@ -55,6 +55,9 @@ const INQUIRY_COLUMNS = [
   'customer_name', 'customer_phone', 'customer_email', 'service_type', 'camera_count',
   'product_name', 'message', 'status'
 ];
+const CATEGORY_COLUMNS = [
+  'name', 'icon_url', 'description', 'tagline', 'sort_order', 'is_active'
+];
 const SETTING_COLUMNS = [
   'showroom_name', 'logo_url', 'tagline', 'phone_primary', 'phone_secondary', 'whatsapp_number',
   'email', 'address', 'city', 'state', 'pincode', 'google_maps_url', 'opening_hours',
@@ -67,6 +70,7 @@ export const TABLE_COLUMNS = {
   products: PRODUCT_COLUMNS,
   offers: OFFER_COLUMNS,
   inquiries: INQUIRY_COLUMNS,
+  categories: CATEGORY_COLUMNS,
   showroom_settings: SETTING_COLUMNS
 };
 
@@ -234,6 +238,45 @@ export const postgresDb = {
       [status, id]
     );
     return rows[0] || null;
+  },
+
+  // --- CATEGORIES ---
+  async getCategories({ activeOnly = false } = {}) {
+    const sql = `SELECT * FROM categories${activeOnly ? ' WHERE is_active = true' : ''} ORDER BY sort_order ASC, created_at ASC`;
+    const { rows } = await query(sql);
+    return rows;
+  },
+
+  async getCategoryById(id) {
+    const { rows } = await query('SELECT * FROM categories WHERE id::text = $1 LIMIT 1', [id]);
+    return rows[0] || null;
+  },
+
+  async createCategory(data) {
+    const { sql, params } = buildInsert('categories', CATEGORY_COLUMNS, {
+      sort_order: 0,
+      is_active: true,
+      ...data
+    });
+    const { rows } = await query(sql, params);
+    return rows[0];
+  },
+
+  async updateCategory(id, data) {
+    const update = buildUpdate('categories', CATEGORY_COLUMNS, data);
+    if (!update) return this.getCategoryById(id);
+
+    const params = [...update.params, id];
+    const { rows } = await query(
+      `UPDATE categories SET ${update.assignments.join(', ')}, updated_at = NOW() WHERE id::text = $${params.length} RETURNING *`,
+      params
+    );
+    return rows[0] || null;
+  },
+
+  async deleteCategory(id) {
+    const { rowCount } = await query('DELETE FROM categories WHERE id::text = $1', [id]);
+    return rowCount > 0;
   },
 
   // --- SHOWROOM SETTINGS ---

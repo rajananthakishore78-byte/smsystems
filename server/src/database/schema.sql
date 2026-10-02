@@ -102,6 +102,19 @@ ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_perk_1 TEXT DEFAULT 
 ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_perk_2 TEXT DEFAULT '';
 ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_perk_3 TEXT DEFAULT '';
 
+-- 5. PRODUCT CATEGORIES TABLE (homepage "Browse By CCTV Category" grid)
+CREATE TABLE IF NOT EXISTS categories (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL UNIQUE,
+    icon_url TEXT DEFAULT '',
+    description VARCHAR(255) DEFAULT '',
+    tagline VARCHAR(100) DEFAULT '',
+    sort_order INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Index for speedy queries
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_featured ON products(is_featured);
@@ -120,6 +133,7 @@ ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE offers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE inquiries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE showroom_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 
 -- Catalog data is public: read-only access for the publishable key.
 DROP POLICY IF EXISTS "public read products" ON products;
@@ -128,6 +142,10 @@ CREATE POLICY "public read products" ON products FOR SELECT TO anon, authenticat
 -- Only live promotional banners are publicly readable.
 DROP POLICY IF EXISTS "public read active offers" ON offers;
 CREATE POLICY "public read active offers" ON offers FOR SELECT TO anon, authenticated USING (is_active = true);
+
+-- Category tiles are public catalog data: readable by everyone.
+DROP POLICY IF EXISTS "public read categories" ON categories;
+CREATE POLICY "public read categories" ON categories FOR SELECT TO anon, authenticated USING (true);
 
 -- inquiries and showroom_settings intentionally have no policies: only the API
 -- (connecting as the owner) may read or write them.

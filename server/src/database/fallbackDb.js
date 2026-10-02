@@ -1,4 +1,4 @@
-import { defaultProducts, defaultOffers, defaultSettings, defaultInquiries } from './seedData.js';
+import { defaultProducts, defaultOffers, defaultSettings, defaultInquiries, defaultCategories } from './seedData.js';
 import { v4 as uuidv4 } from 'uuid';
 
 // In-memory data store for turnkey local operation before / alongside Supabase
@@ -8,6 +8,7 @@ class FallbackDb {
     this.offers = [...defaultOffers];
     this.settings = { ...defaultSettings };
     this.inquiries = [...defaultInquiries];
+    this.categories = [...defaultCategories];
   }
 
   // --- PRODUCTS ---
@@ -173,6 +174,48 @@ class FallbackDb {
   async updateSettings(data) {
     this.settings = { ...this.settings, ...data, updated_at: new Date().toISOString() };
     return { ...this.settings };
+  }
+
+  // --- CATEGORIES ---
+  async getCategories({ activeOnly = false } = {}) {
+    const rows = [...this.categories].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    if (activeOnly) return rows.filter(c => c.is_active);
+    return rows;
+  }
+
+  async getCategoryById(id) {
+    return this.categories.find(c => c.id === id) || null;
+  }
+
+  async createCategory(data) {
+    const maxOrder = this.categories.reduce((m, c) => Math.max(m, c.sort_order || 0), 0);
+    const newCategory = {
+      id: `cat-${uuidv4().slice(0, 8)}`,
+      name: data.name,
+      icon_url: data.icon_url || '',
+      description: data.description || '',
+      tagline: data.tagline || '',
+      sort_order: data.sort_order !== undefined ? Number(data.sort_order) : maxOrder + 1,
+      is_active: data.is_active !== false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    this.categories.push(newCategory);
+    return newCategory;
+  }
+
+  async updateCategory(id, data) {
+    const idx = this.categories.findIndex(c => c.id === id);
+    if (idx === -1) return null;
+    this.categories[idx] = { ...this.categories[idx], ...data, updated_at: new Date().toISOString() };
+    return this.categories[idx];
+  }
+
+  async deleteCategory(id) {
+    const idx = this.categories.findIndex(c => c.id === id);
+    if (idx === -1) return false;
+    this.categories.splice(idx, 1);
+    return true;
   }
 }
 

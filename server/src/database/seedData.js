@@ -334,6 +334,63 @@ export const defaultSettings = {
   clients_served: "8,500+"
 };
 
+export const defaultCategories = [
+  {
+    id: "cat-001",
+    name: "Bullet Cameras",
+    icon_url: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=400&q=80",
+    description: "Outdoor, IP67 Weatherproof, Night Vision",
+    tagline: "Outdoor Security",
+    sort_order: 1,
+    is_active: true
+  },
+  {
+    id: "cat-002",
+    name: "Dome Cameras",
+    icon_url: "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=400&q=80",
+    description: "Indoor, Ceiling Mount, Vandal-Proof",
+    tagline: "Home & Office",
+    sort_order: 2,
+    is_active: true
+  },
+  {
+    id: "cat-003",
+    name: "PTZ Cameras",
+    icon_url: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?auto=format&fit=crop&w=400&q=80",
+    description: "360° Pan-Tilt-Zoom, Smart AI Tracking",
+    tagline: "Perimeter & Commercial",
+    sort_order: 3,
+    is_active: true
+  },
+  {
+    id: "cat-004",
+    name: "Wireless Smart Cameras",
+    icon_url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80",
+    description: "WiFi & 4G SIM, Solar, Two-Way Audio",
+    tagline: "Plug & Play",
+    sort_order: 4,
+    is_active: true
+  },
+  {
+    id: "cat-005",
+    name: "Complete Packages",
+    icon_url: "https://images.unsplash.com/photo-1528312635006-8ea0bc49ec63?auto=format&fit=crop&w=400&q=80",
+    description: "Turnkey 4-Cam & 8-Cam Kits with Installation",
+    tagline: "Best Value Bundles",
+    sort_order: 5,
+    is_active: true
+  },
+  {
+    id: "cat-006",
+    name: "DVR & NVR Kits",
+    icon_url: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=400&q=80",
+    description: "4K Video Recorders & Surveillance Storage",
+    tagline: "24/7 Recording",
+    sort_order: 6,
+    is_active: true
+  }
+];
+
 export const defaultInquiries = [
   {
     id: "inq-101",
