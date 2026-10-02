@@ -11,7 +11,6 @@ import {
   Award, 
   Wrench, 
   CheckCircle2, 
-  Lock,
   Instagram,
   Facebook
 } from 'lucide-react';
@@ -257,10 +256,6 @@ export default function Footer() {
             <Link to="/products" className="hover:text-slate-300">Catalog</Link>
             <Link to="/services" className="hover:text-slate-300">Installation Packages</Link>
             <Link to="/contact" className="hover:text-slate-300">Showroom Map</Link>
-            <Link to="/admin" className="hover:text-amber-400 flex items-center gap-1">
-              <Lock className="w-3 h-3" />
-              Admin Portal
-            </Link>
           </div>
         </div>
       </div>
