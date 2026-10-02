@@ -19,7 +19,16 @@ export const InquiryProvider = ({ children }) => {
     opening_hours: "Mon - Sat: 9:00 AM - 9:00 PM | Sun: 10:00 AM - 6:00 PM",
     announcement_bar: "⚡ Exclusive Showroom Offer: Get FREE On-Site Site Survey & 2-Year Replacement Warranty on all 4K CCTV setups!",
     instagram_url: "",
-    facebook_url: ""
+    facebook_url: "",
+    demo_badge_text: "4K Ultra HD",
+    demo_image_url: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80",
+    demo_product_name: "Hikvision ColorVu 5MP",
+    demo_product_feature: "F1.0 Full-Time Night Color",
+    demo_mrp: "₹4,999",
+    demo_offer_price: "₹3,299",
+    demo_perk_1: "Free Mobile App Setup on Android & iPhone",
+    demo_perk_2: "Free Site Survey by Certified Security Engineers",
+    demo_perk_3: "Doorstep Demo & Replacement Guarantee"
   });
 
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);

@@ -161,13 +161,13 @@ export default function Home() {
                     <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Live Showroom Demo</span>
                   </div>
                   <span className="text-xs bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-md font-bold">
-                    4K Ultra HD
+                    {settings.demo_badge_text || '4K Ultra HD'}
                   </span>
                 </div>
 
                 <div className="relative h-64 rounded-2xl overflow-hidden bg-slate-100 flex items-center justify-center border border-slate-200">
                   <img
-                    src="https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80"
+                    src={settings.demo_image_url || "https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80"}
                     alt="CCTV Camera Demonstration"
                     className="h-full w-full object-cover"
                   />
@@ -176,30 +176,24 @@ export default function Home() {
                   {/* Overlay Specs Card */}
                   <div className="absolute bottom-3 inset-x-3 p-3 rounded-xl bg-white/95 backdrop-blur border border-slate-200/80 flex items-center justify-between shadow-md">
                     <div>
-                      <p className="text-xs font-bold text-slate-900">Hikvision ColorVu 5MP</p>
-                      <p className="text-[11px] text-emerald-600 font-semibold">F1.0 Full-Time Night Color</p>
+                      <p className="text-xs font-bold text-slate-900">{settings.demo_product_name || 'Hikvision ColorVu 5MP'}</p>
+                      <p className="text-[11px] text-emerald-600 font-semibold">{settings.demo_product_feature || 'F1.0 Full-Time Night Color'}</p>
                     </div>
                     <div className="text-right">
-                      <span className="text-xs text-slate-400 line-through">₹4,999</span>
-                      <p className="text-sm font-extrabold text-brand-600">₹3,299</p>
+                      <span className="text-xs text-slate-400 line-through">{settings.demo_mrp || '₹4,999'}</span>
+                      <p className="text-sm font-extrabold text-brand-600">{settings.demo_offer_price || '₹3,299'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Showroom Perks */}
                 <div className="space-y-2 text-xs text-slate-600 font-medium">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                    <span>Free Mobile App Setup on Android & iPhone</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                    <span>Free Site Survey by Certified Security Engineers</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-orange-600 flex-shrink-0" />
-                    <span>Doorstep Demo & Replacement Guarantee</span>
-                  </div>
+                  {[settings.demo_perk_1, settings.demo_perk_2, settings.demo_perk_3].map((perk, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                      <span>{perk || ['Free Mobile App Setup on Android & iPhone', 'Free Site Survey by Certified Security Engineers', 'Doorstep Demo & Replacement Guarantee'][i]}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <a

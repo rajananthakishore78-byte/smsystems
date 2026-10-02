@@ -58,7 +58,9 @@ const INQUIRY_COLUMNS = [
 const SETTING_COLUMNS = [
   'showroom_name', 'logo_url', 'tagline', 'phone_primary', 'phone_secondary', 'whatsapp_number',
   'email', 'address', 'city', 'state', 'pincode', 'google_maps_url', 'opening_hours',
-  'announcement_bar', 'instagram_url', 'facebook_url'
+  'announcement_bar', 'instagram_url', 'facebook_url',
+  'demo_badge_text', 'demo_image_url', 'demo_product_name', 'demo_product_feature',
+  'demo_mrp', 'demo_offer_price', 'demo_perk_1', 'demo_perk_2', 'demo_perk_3'
 ];
 
 export const TABLE_COLUMNS = {

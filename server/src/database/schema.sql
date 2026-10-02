@@ -73,6 +73,15 @@ CREATE TABLE IF NOT EXISTS showroom_settings (
     announcement_bar TEXT DEFAULT '🔥 Mega Showroom Clearance: Get Free Site Inspection & 2-Year On-Site Warranty on all 4K CCTV Kits!',
     instagram_url TEXT DEFAULT '',
     facebook_url TEXT DEFAULT '',
+    demo_badge_text TEXT DEFAULT '4K Ultra HD',
+    demo_image_url TEXT DEFAULT 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&w=800&q=80',
+    demo_product_name TEXT DEFAULT 'Hikvision ColorVu 5MP',
+    demo_product_feature TEXT DEFAULT 'F1.0 Full-Time Night Color',
+    demo_mrp TEXT DEFAULT '₹4,999',
+    demo_offer_price TEXT DEFAULT '₹3,299',
+    demo_perk_1 TEXT DEFAULT 'Free Mobile App Setup on Android & iPhone',
+    demo_perk_2 TEXT DEFAULT 'Free Site Survey by Certified Security Engineers',
+    demo_perk_3 TEXT DEFAULT 'Doorstep Demo & Replacement Guarantee',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -82,6 +91,16 @@ ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS logo_url TEXT DEFAULT '';
 -- Social profile links (editable from Admin Portal -> Settings)
 ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS instagram_url TEXT DEFAULT '';
 ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS facebook_url TEXT DEFAULT '';
+-- Homepage Live Demo card (editable from Admin Portal -> Settings)
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_badge_text TEXT DEFAULT '4K Ultra HD';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_image_url TEXT DEFAULT '';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_product_name TEXT DEFAULT '';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_product_feature TEXT DEFAULT '';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_mrp TEXT DEFAULT '';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_offer_price TEXT DEFAULT '';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_perk_1 TEXT DEFAULT '';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_perk_2 TEXT DEFAULT '';
+ALTER TABLE showroom_settings ADD COLUMN IF NOT EXISTS demo_perk_3 TEXT DEFAULT '';
 
 -- Index for speedy queries
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);

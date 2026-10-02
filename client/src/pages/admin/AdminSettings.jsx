@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Settings, Save, CheckCircle2, Building, Phone, MapPin, Clock, Sparkles, Loader2, AlertCircle, Image, Trash2, Upload, Share2 } from 'lucide-react';
+import { Settings, Save, CheckCircle2, Building, Phone, MapPin, Clock, Sparkles, Loader2, AlertCircle, Image, Trash2, Upload, Share2, Camera } from 'lucide-react';
 import { getSettings, updateSettings, uploadImage } from '../../api/client.js';
 import { useInquiry } from '../../context/InquiryContext.jsx';
 
@@ -18,14 +18,25 @@ export default function AdminSettings() {
     opening_hours: '',
     announcement_bar: '',
     instagram_url: '',
-    facebook_url: ''
+    facebook_url: '',
+    demo_badge_text: '',
+    demo_image_url: '',
+    demo_product_name: '',
+    demo_product_feature: '',
+    demo_mrp: '',
+    demo_offer_price: '',
+    demo_perk_1: '',
+    demo_perk_2: '',
+    demo_perk_3: ''
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingDemo, setUploadingDemo] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const logoInputRef = useRef(null);
+  const demoInputRef = useRef(null);
 
   useEffect(() => {
     loadSettings();
@@ -74,6 +85,38 @@ export default function AdminSettings() {
     } finally {
       setUploadingLogo(false);
       if (logoInputRef.current) logoInputRef.current.value = '';
+    }
+  };
+
+  const handleDemoImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setErrorMsg('Please choose an image file (PNG, JPG or WebP) for the demo card.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg('Demo image file must be smaller than 5MB.');
+      return;
+    }
+
+    setUploadingDemo(true);
+    setErrorMsg('');
+    try {
+      const res = await uploadImage(file);
+      if (res.data.success && res.data.url) {
+        setForm((prev) => ({ ...prev, demo_image_url: res.data.url }));
+        setSuccessMsg('Demo image uploaded! Click "Save All Settings" to apply it site-wide.');
+        setTimeout(() => setSuccessMsg(''), 5000);
+      } else {
+        setErrorMsg(res.data.message || 'Demo image upload failed.');
+      }
+    } catch (err) {
+      setErrorMsg(err.response?.data?.message || 'Demo image upload failed. Please try again.');
+    } finally {
+      setUploadingDemo(false);
+      if (demoInputRef.current) demoInputRef.current.value = '';
     }
   };
 
@@ -317,6 +360,146 @@ export default function AdminSettings() {
                   className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500 font-mono text-[11px]"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Homepage Live Demo Card */}
+          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Camera className="w-4 h-4 text-brand-400" />
+              <span>Homepage Live Demo Card</span>
+            </h3>
+            <p className="text-[11px] text-slate-400">
+              Controls the "Live Showroom Demo" card on the homepage hero — image, badge, featured product and the three perk lines.
+            </p>
+
+            {/* Demo image */}
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-24 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {form.demo_image_url ? (
+                  <img src={form.demo_image_url} alt="Demo card preview" className="w-full h-full object-cover" />
+                ) : (
+                  <Image className="w-8 h-8 text-slate-600" />
+                )}
+              </div>
+              <div className="space-y-2">
+                <input
+                  ref={demoInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleDemoImageSelect}
+                />
+                <button
+                  type="button"
+                  onClick={() => demoInputRef.current?.click()}
+                  disabled={uploadingDemo}
+                  className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-bold text-xs flex items-center gap-2 transition-colors"
+                >
+                  {uploadingDemo ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Uploading...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      <span>{form.demo_image_url ? 'Replace Demo Image' : 'Upload Demo Image'}</span>
+                    </>
+                  )}
+                </button>
+                {form.demo_image_url && (
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, demo_image_url: '' })}
+                    className="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 hover:bg-rose-500/20 font-bold text-xs flex items-center gap-1.5 transition-colors w-full justify-center"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remove</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-300 mb-1">Demo Image URL (or upload above)</label>
+              <input
+                type="url"
+                placeholder="https://..."
+                value={form.demo_image_url || ''}
+                onChange={(e) => setForm({ ...form, demo_image_url: e.target.value })}
+                className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500 font-mono text-[11px]"
+              />
+            </div>
+
+            {/* Badge + product overlay */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Top-Right Badge Text</label>
+                <input
+                  type="text"
+                  placeholder="e.g. 4K Ultra HD"
+                  value={form.demo_badge_text || ''}
+                  onChange={(e) => setForm({ ...form, demo_badge_text: e.target.value })}
+                  className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Featured Product Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Hikvision ColorVu 5MP"
+                  value={form.demo_product_name || ''}
+                  onChange={(e) => setForm({ ...form, demo_product_name: e.target.value })}
+                  className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Product Highlight Line</label>
+                <input
+                  type="text"
+                  placeholder="e.g. F1.0 Full-Time Night Color"
+                  value={form.demo_product_feature || ''}
+                  onChange={(e) => setForm({ ...form, demo_product_feature: e.target.value })}
+                  className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">MRP (struck off)</label>
+                  <input
+                    type="text"
+                    placeholder="₹4,999"
+                    value={form.demo_mrp || ''}
+                    onChange={(e) => setForm({ ...form, demo_mrp: e.target.value })}
+                    className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Offer Price</label>
+                  <input
+                    type="text"
+                    placeholder="₹3,299"
+                    value={form.demo_offer_price || ''}
+                    onChange={(e) => setForm({ ...form, demo_offer_price: e.target.value })}
+                    className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Perk lines */}
+            <div className="space-y-3">
+              <label className="block font-semibold text-slate-300">Perk Lines (3 checkmarks under the image)</label>
+              {[1, 2, 3].map((n) => (
+                <input
+                  key={n}
+                  type="text"
+                  placeholder={`Perk line ${n}`}
+                  value={form[`demo_perk_${n}`] || ''}
+                  onChange={(e) => setForm({ ...form, [`demo_perk_${n}`]: e.target.value })}
+                  className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-brand-500"
+                />
+              ))}
             </div>
           </div>
 
