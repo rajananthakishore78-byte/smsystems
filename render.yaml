@@ -1,12 +1,11 @@
-# Render blueprint for the SM SYSTEMS API (Express + Supabase PostgreSQL).
-# The React client deploys separately on Netlify (see netlify.toml).
+# Render blueprint for SM SYSTEMS (Express API + React static frontend).
 #
 # Deploy: Render dashboard -> New -> Blueprint -> pick this repo.
 # Secrets below are marked `sync: false`, so Render prompts you for each value
 # during setup (copy them from server/.env). Never commit real values here.
 services:
   - type: web
-    name: smsystems-api
+    name: smsystems
     runtime: node
     plan: free
     rootDir: server
@@ -42,6 +41,20 @@ services:
       # Break-glass key for curl/scripts (x-admin-key header)
       - key: ADMIN_SECRET_KEY
         sync: false
-      # Your Netlify site URL (CORS allow-list); the API also allows any origin
+      # Your frontend site URL (CORS allow-list); the API also allows any origin
       - key: CLIENT_URL
         sync: false
+  # Frontend static site (https://smsystems-1.onrender.com).
+  # Critical: VITE_API_URL must include /api suffix, and /* must rewrite
+  # to /index.html or /admin/login will 404 on refresh/direct visit.
+  - type: static
+    name: smsystems-1
+    buildCommand: npm install --prefix client && npm --prefix client run build
+    staticPublishPath: client/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://smsystems.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
